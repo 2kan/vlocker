@@ -7,7 +7,18 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <TreeView x:Name="fileTree" HorizontalAlignment="Left" Height="278" Margin="10,10,0,0" VerticalAlignment="Top" Width="272"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
+        <TreeView x:Name="fileTree" Grid.Row="0" Grid.Column="0" Margin="5,5,5,5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto" Height="Auto" RenderTransformOrigin="0.5,0.5" MinHeight="2"/>
+
+        <Button x:Name="btnAddFile" Content="Add file" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="5,5,5,5" Click="btnAddFile_Click"/>
+        <TextBlock x:Name="output" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch" Margin="5,35,5,5" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
     </Grid>
 </Window>
