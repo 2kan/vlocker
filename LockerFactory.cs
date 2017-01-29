@@ -10,13 +10,13 @@ namespace vlocker
 	{
 		public static Locker CreateLocker ( string a_path, string a_name = "Unnamed Locker", bool a_encoded = true )
 		{
-			if (a_path.IndexOf(":\\") == -1)
+			if ( a_path.IndexOf( ":\\" ) == -1 )
 			{
 				a_path = Environment.CurrentDirectory + "\\" + a_path;
 			}
 
-			Locker locker = new Locker( a_path, a_name, a_encoded );
-			locker.CreateLocker();
+			Locker locker = new Locker( a_path );
+			locker.CreateLocker( a_name, a_encoded );
 
 			return locker;
 		}

@@ -38,10 +38,8 @@ namespace vlocker
 			get { return GetHeaderLength(); }
 		}
 
-		public LockerConfig ( string a_path, string a_name = "Unnamed Locker", bool a_encoded = true )
+		public LockerConfig ( string a_path )
 		{
-			m_lockerName = a_name;
-			m_encoded = a_encoded;
 			m_path = a_path;
 		}
 
@@ -60,12 +58,29 @@ namespace vlocker
 			for ( int i = 0; i < name.Length; ++i )
 				header[version.Length + i] = name[i];
 
-			// Calculate hash of whole header and append
-			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( header );
+			// Calculate hash of whole header (minus 20 bytes for hash) and append
+			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( header.Take( GetHeaderLength() - 20 ).ToArray() );
 			for ( int i = 0; i < checksum.Length; ++i )
 				header[version.Length + m_maxNameLength * 4 + i] = checksum[i];
 
 			return header;
+		}
+
+		public int LoadHeader ( byte[] a_data )
+		{
+			int headerLength = GetHeaderLength();
+
+			byte[] headerBlock = a_data.Take( headerLength - 20 ).ToArray();
+			byte[] headerChecksum = a_data.Skip( headerLength - 20 ).Take( 20 ).ToArray();
+			byte[] calculatedChecksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( headerBlock );
+
+			if ( !headerChecksum.SequenceEqual( calculatedChecksum ) )
+				return -1;
+
+			m_configVersion = BitConverter.ToInt32( headerBlock.Take( sizeof( int ) ).ToArray(), 0 );
+			m_lockerName = Encoding.UTF8.GetString( headerBlock.Skip( sizeof( int ) ).Take( 4 * m_maxNameLength ).ToArray() ).TrimEnd('\0');
+
+			return headerLength;
 		}
 
 		private int GetHeaderLength ()
