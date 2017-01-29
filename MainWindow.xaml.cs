@@ -25,17 +25,17 @@ namespace vlocker
 			InitializeComponent();
 
 			//LockerFactory.CreateLocker( "locker.vlocker" );
-			Locker a = new Locker( "locker.vlocker" );
-			a.LoadLocker();
+			Locker locker = new Locker( "locker.vlocker" );
+			locker.LoadLocker();
 			//a.FileDirectory.AddFile( "test.txt" );
-			byte[] file = a.FileDirectory.GetFile( "test.txt" );
+			//byte[] file = a.FileDirectory.GetFile( "test.txt" );
 
 			TreeViewItem treeItem = new TreeViewItem();
 			treeItem.Header = "root";
 
-			//string[] filenames = a.FileDirectory.GetFilenames();
-			//for ( int i = 0; i < filenames.Length; ++i )
-				treeItem.Items.Add( new TreeViewItem() { Header = "root" } );
+			string[] filenames = locker.FileDirectory.GetFilenames();
+			for ( int i = 0; i < filenames.Length; ++i )
+				treeItem.Items.Add( new TreeViewItem() { Header = filenames[i] } );
 
 			fileTree.Items.Add( treeItem );
 		}

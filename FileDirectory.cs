@@ -117,7 +117,7 @@ namespace vlocker
 
 			// Update checksum
 			byte[] block = GetBlock();
-			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( block.Take( block.Length - 20 ).ToArray(); );
+			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( block.Take( block.Length - 20 ).ToArray() );
 			fs.Seek( m_config.GetHeader().Length + block.Length - 20, SeekOrigin.Begin );
 			fs.Write( checksum, 0, checksum.Length );
 
