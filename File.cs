@@ -25,7 +25,7 @@ namespace vlocker
 		{
 			get
 			{
-				string[] tokens = m_path.Split( '/' );
+				string[] tokens = m_path.Split( '\\' );
 				return tokens[tokens.Length - 1];
 			}
 		}
