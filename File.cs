@@ -56,7 +56,7 @@ namespace vlocker
 		public File ( LockerConfig a_lockerConfig, byte[] a_entryData )
 		{
 			byte[] entryChecksum = a_entryData.Skip( a_entryData.Length - 20 ).Take( 20 ).ToArray();
-			byte[] calculatedChecksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( entryChecksum );
+			byte[] calculatedChecksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( a_entryData.Take( a_entryData.Length - 20 ).ToArray() );
 
 			// TODO: manage invalid checksums better than this
 			if ( !entryChecksum.SequenceEqual( calculatedChecksum ) )
@@ -65,9 +65,10 @@ namespace vlocker
 			m_path = Encoding.UTF8.GetString( a_entryData.Take( 4 * m_maxPathSize ).ToArray() ).TrimEnd( '\0' );
 			m_offset = BitConverter.ToInt32( a_entryData.Skip( 4 * m_maxPathSize ).Take( sizeof( int ) ).ToArray(), 0 );
 			m_length = BitConverter.ToInt32( a_entryData.Skip( 4 * m_maxPathSize + sizeof( int ) ).Take( sizeof( int ) ).ToArray(), 0 );
+			m_config = a_lockerConfig;
 		}
 
-		public byte[] GetData (int a_fileBlockOffset)
+		public byte[] GetData ( int a_fileBlockOffset )
 		{
 			FileStream fs = new FileStream( m_config.Path, FileMode.Open );
 			//int length = (int) fs.Length;
@@ -101,10 +102,10 @@ namespace vlocker
 			for ( int i = 0; i < length.Length; ++i )
 				entry[m_maxPathSize * 4 + offset.Length + i] = length[i];
 
-			// Calculate hash of whole block and append
-			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( entry );
+			// Calculate hash of whole entry and append
+			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( entry.Take( entry.Length - 20 ).ToArray() );
 			for ( int i = 0; i < checksum.Length; ++i )
-				entry[m_maxPathSize * 4 + offset.Length + length.Length + i] = checksum[i];
+				entry[GetEntrySize() - 20 + i] = checksum[i];
 
 			return entry;
 		}

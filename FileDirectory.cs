@@ -48,7 +48,7 @@ namespace vlocker
 			}
 
 			// Calculate hash of whole block and append
-			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( block );
+			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( block.Take( block.Length - 20 ).ToArray() );
 			for ( int i = 0; i < checksum.Length; ++i )
 				block[( block.Length - 20 ) + i] = checksum[i];
 
@@ -59,17 +59,23 @@ namespace vlocker
 		{
 			int numFiles = BitConverter.ToInt32( a_data.Take( sizeof( int ) ).ToArray(), 0 );
 
-			int blockLength = sizeof( int ) + numFiles * File.GetEntrySize() + 20;
+			int blockLength = m_blockPoolLength *
+				(int) ( Math.Ceiling( (double) ( m_directory.Count / m_maxBlockPoolFiles ) + 1 ) ) +
+				sizeof( int ) +
+				20;//sizeof( int ) + numFiles * File.GetEntrySize() + 20;
+
+			// Add each file to the directory
+			for ( int i = 0; i < numFiles; ++i )
+			{
+				m_directory.Add( new File( m_config, a_data.Skip( sizeof(int) + i * File.GetEntrySize() ).Take( File.GetEntrySize() ).ToArray() ) );
+			}
 
 			byte[] blockChecksum = a_data.Skip( blockLength - 20 ).Take( 20 ).ToArray();
-			byte[] calculatedChecksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( blockChecksum );
+			var preChecksum = BitConverter.GetBytes(numFiles).Concat(GetBlock().Skip(sizeof(int)).Take(blockLength - sizeof(int) - 20)).ToArray();
+			byte[] calculatedChecksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( preChecksum );
 
 			if ( !blockChecksum.SequenceEqual( calculatedChecksum ) )
 				return -1;
-
-			// Add each file to the directory
-			for ( int i = 1; i < blockLength - 20; i = i + File.GetEntrySize() )
-				m_directory.Add( new File( m_config, a_data.Skip( i ).Take( File.GetEntrySize() ).ToArray() ) );
 
 			return blockLength;
 		}
@@ -101,8 +107,20 @@ namespace vlocker
 
 			// Write file entry to directory
 			byte[] entryBytes = m_directory[m_directory.Count - 1].GetEntry();
-			fs.Seek( m_config.GetHeader().Length + ( m_directory.Count - 1 ) * File.GetEntrySize(), SeekOrigin.Begin );
+			fs.Seek( m_config.GetHeader().Length + ( m_directory.Count - 1 ) * File.GetEntrySize() + sizeof( int ), SeekOrigin.Begin );
 			fs.Write( entryBytes, 0, entryBytes.Length );
+
+			// Update file count
+			byte[] countBytes = BitConverter.GetBytes( m_directory.Count );
+			fs.Seek( m_config.GetHeader().Length, SeekOrigin.Begin );
+			fs.Write( countBytes, 0, countBytes.Length );
+
+			// Update checksum
+			byte[] block = GetBlock();
+			byte[] checksum = ( new SHA1CryptoServiceProvider() ).ComputeHash( block.Take( block.Length - 20 ).ToArray(); );
+			fs.Seek( m_config.GetHeader().Length + block.Length - 20, SeekOrigin.Begin );
+			fs.Write( checksum, 0, checksum.Length );
+
 
 			// Write file data after header and directory
 			fs.Seek( curBlockSize + m_config.GetHeader().Length + endOffset, SeekOrigin.Begin );
@@ -112,15 +130,24 @@ namespace vlocker
 			return true;
 		}
 
-		public byte[] GetFile (string a_filename)
+		public byte[] GetFile ( string a_filename )
 		{
-			for (int i=0; i<m_directory.Count; ++i )
+			for ( int i = 0; i < m_directory.Count; ++i )
 			{
 				if ( m_directory[i].Filename == a_filename )
-					return m_directory[i].GetData(GetBlock().Length);
+					return m_directory[i].GetData( GetBlock().Length );
 			}
 
 			return null;
+		}
+
+		public string[] GetFilenames ()
+		{
+			string[] filenames = new string[m_directory.Count];
+			for ( int i = 0; i < m_directory.Count; ++i )
+				filenames[i] = m_directory[i].Filename;
+
+			return filenames;
 		}
 	}
 }

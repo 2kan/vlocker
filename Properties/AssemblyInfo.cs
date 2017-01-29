@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle( "vlocker" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
-[assembly: AssemblyCompany( "" )]
+[assembly: AssemblyCompany( "2kan Specifications" )]
 [assembly: AssemblyProduct( "vlocker" )]
 [assembly: AssemblyCopyright( "Copyright ©  2017" )]
 [assembly: AssemblyTrademark( "" )]
