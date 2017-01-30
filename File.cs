@@ -11,21 +11,35 @@ namespace vlocker
 	public class File
 	{
 		private static int m_maxPathSize = 260;
-		private string m_path;
+		private string m_fullPath;
 		private int m_length;
 		private int m_offset;
 		private LockerConfig m_config;
 
+		public string FullPath
+		{
+			get { return m_fullPath; }
+		}
+
 		public string Path
 		{
-			get { return m_path; }
+			get
+			{
+				for ( int i = m_fullPath.Length - 1; i >= 0; --i )
+				{
+					if ( m_fullPath[i] == '\\' )
+						return m_fullPath.Substring( 0, i );
+				}
+
+				return null;
+			}
 		}
 
 		public string Filename
 		{
 			get
 			{
-				string[] tokens = m_path.Split( '\\' );
+				string[] tokens = m_fullPath.Split( '\\' );
 				return tokens[tokens.Length - 1];
 			}
 		}
@@ -42,7 +56,7 @@ namespace vlocker
 
 		public File ( LockerConfig a_lockerConfig, string a_path, int a_length, int a_offset )
 		{
-			m_path = a_path;
+			m_fullPath = a_path;
 			m_length = a_length;
 			m_offset = a_offset;
 			m_config = a_lockerConfig;
@@ -62,7 +76,7 @@ namespace vlocker
 			if ( !entryChecksum.SequenceEqual( calculatedChecksum ) )
 				throw new Exception( "File entry corrupt." );
 
-			m_path = Encoding.UTF8.GetString( a_entryData.Take( 4 * m_maxPathSize ).ToArray() ).TrimEnd( '\0' );
+			m_fullPath = Encoding.UTF8.GetString( a_entryData.Take( 4 * m_maxPathSize ).ToArray() ).TrimEnd( '\0' );
 			m_offset = BitConverter.ToInt32( a_entryData.Skip( 4 * m_maxPathSize ).Take( sizeof( int ) ).ToArray(), 0 );
 			m_length = BitConverter.ToInt32( a_entryData.Skip( 4 * m_maxPathSize + sizeof( int ) ).Take( sizeof( int ) ).ToArray(), 0 );
 			m_config = a_lockerConfig;
@@ -88,7 +102,7 @@ namespace vlocker
 			byte[] entry = new byte[GetEntrySize()];
 
 			// Add the path to the block
-			byte[] path = Encoding.UTF8.GetBytes( m_path );
+			byte[] path = Encoding.UTF8.GetBytes( m_fullPath );
 			for ( int i = 0; i < path.Length; ++i )
 				entry[i] = path[i];
 

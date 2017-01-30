@@ -83,8 +83,8 @@ namespace vlocker
 		public bool AddFile ( string a_path )
 		{
 			// TODO: add virtual paths
-			string[] tokens = a_path.Split( '/' );
-			string filename = tokens[tokens.Length - 1];
+			//string[] tokens = a_path.Split( '/' );
+			//string filename = tokens[tokens.Length - 1];
 
 			byte[] bytes = System.IO.File.ReadAllBytes( a_path );
 
@@ -101,7 +101,7 @@ namespace vlocker
 			}
 
 			int curBlockSize = GetBlock().Length;
-			m_directory.Add( new File( m_config, filename, bytes.Length, endOffset ) );
+			m_directory.Add( new File( m_config, a_path, bytes.Length, endOffset ) );
 
 			FileStream fs = new FileStream( m_config.Path, FileMode.Open );
 
@@ -130,15 +130,20 @@ namespace vlocker
 			return true;
 		}
 
-		public byte[] GetFile ( string a_filename )
+		public byte[] GetFile ( string a_path )
 		{
 			for ( int i = 0; i < m_directory.Count; ++i )
 			{
-				if ( m_directory[i].Filename == a_filename )
+				if ( m_directory[i].FullPath == a_path )
 					return m_directory[i].GetData( GetBlock().Length );
 			}
 
 			return null;
+		}
+
+		public File[] GetFiles()
+		{
+			return m_directory.ToArray();
 		}
 
 		public string[] GetFilenames ()

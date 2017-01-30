@@ -65,6 +65,7 @@
     </Compile>
     <Compile Include="File.cs" />
     <Compile Include="FileDirectory.cs" />
+    <Compile Include="FileViewItem.cs" />
     <Compile Include="Locker.cs" />
     <Compile Include="LockerConfig.cs" />
     <Compile Include="LockerFactory.cs" />

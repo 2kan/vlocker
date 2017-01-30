@@ -26,10 +26,10 @@ namespace vlocker
 		{
 			InitializeComponent();
 
-			//LockerFactory.CreateLocker( "locker.vlocker" );
+			LockerFactory.CreateLocker( "locker.vlocker" );
 			m_locker = new Locker( "locker.vlocker" );
 			m_locker.LoadLocker();
-			//a.FileDirectory.AddFile( "test.txt" );
+			m_locker.FileDirectory.AddFile( "test.txt" );
 			//byte[] file = a.FileDirectory.GetFile( "test.txt" );
 
 			UpdateFileTree();
@@ -40,15 +40,28 @@ namespace vlocker
 			TreeViewItem treeItem = new TreeViewItem();
 			treeItem.Header = "root";
 
-			string[] filenames = m_locker.FileDirectory.GetFilenames();
-			for ( int i = 0; i < filenames.Length; ++i )
+			Dictionary<string, TreeViewItem> map = new Dictionary<string, TreeViewItem>();
+
+			File[] files = m_locker.FileDirectory.GetFiles();
+			for ( int i = 0; i < files.Length; ++i )
 			{
-				TreeViewItem file = new TreeViewItem() { Header = filenames[i] };
+				FileViewItem file = new FileViewItem()
+				{
+					Header = files[i].Filename,
+					FullPath = files[i].FullPath
+				};
 				file.MouseDoubleClick += fileTree_itemDoubleClick;
 
-				treeItem.Items.Add( file );
+				if ( map.ContainsKey( files[i].Path ) )
+					map[files[i].Path].Items.Add( file );
+				else
+				{
+					AddFolderNode( map, files[i].Path ).Items.Add( file );
+
+				}
 			}
 
+			treeItem.Items.Add( map.First().Value );
 			treeItem.IsExpanded = true;
 
 			fileTree.Items.Clear();
@@ -69,9 +82,32 @@ namespace vlocker
 			}
 		}
 
-		private void fileTree_itemDoubleClick(object sender, RoutedEventArgs e)
+		private void fileTree_itemDoubleClick ( object sender, RoutedEventArgs e )
 		{
-			output.Text = Encoding.UTF8.GetString(m_locker.FileDirectory.GetFile(((TreeViewItem) sender).Header.ToString()));
+			output.Text = Encoding.UTF8.GetString( m_locker.FileDirectory.GetFile( ( (FileViewItem) sender ).FullPath ) );
+		}
+
+		private TreeViewItem AddFolderNode ( Dictionary<string, TreeViewItem> a_map, string a_path )
+		{
+			if ( a_map.ContainsKey( a_path ) )
+				return a_map[a_path];
+
+			string[] tokens = a_path.Split( '\\' );
+			TreeViewItem thisItem = new TreeViewItem() { Header = tokens[tokens.Length - 1] };
+
+			for ( int i = a_path.Length - 1; i >= 0; --i )
+			{
+				if ( a_path[i] == '\\' )
+				{
+					AddFolderNode( a_map, a_path.Substring( 0, i ) );
+					a_map[a_path.Substring( 0, i )].Items.Add( thisItem );
+					break;
+				}
+			}
+
+			a_map.Add( a_path, thisItem );
+
+			return a_map[a_path];
 		}
 	}
 }
