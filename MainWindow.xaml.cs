@@ -21,6 +21,7 @@ namespace vlocker
 	public partial class MainWindow : Window
 	{
 		private Locker m_locker;
+		private ContextMenu m_defaultMenu;
 
 		public MainWindow ()
 		{
@@ -31,6 +32,12 @@ namespace vlocker
 			m_locker.LoadLocker();
 			//m_locker.FileDirectory.AddFile( "test.txt" );
 			//byte[] file = a.FileDirectory.GetFile( "test.txt" );
+
+			m_defaultMenu = new ContextMenu();
+			var a = new MenuItem();
+			a.Header = "Delete";
+			a.Click += DeleteNode;
+			m_defaultMenu.Items.Add( a );
 
 			UpdateFileTree();
 		}
@@ -49,9 +56,14 @@ namespace vlocker
 				FileViewItem file = new FileViewItem()
 				{
 					Header = files[i].Filename,
-					FullPath = files[i].FullPath
+					FullPath = files[i].FullPath,
+					ContextMenu = m_defaultMenu
 				};
 				file.MouseDoubleClick += fileTree_itemDoubleClick;
+				file.MouseRightButtonUp += ( object a_sender, MouseButtonEventArgs a_args ) =>
+				{
+					( (FileViewItem) a_sender ).IsSelected = true;
+				};
 
 				if ( map.ContainsKey( files[i].Path ) )
 					map[files[i].Path].Items.Add( file );
@@ -77,7 +89,7 @@ namespace vlocker
 
 			if ( result == true )
 			{
-				string filename = dialog.FileName;
+				string filename = dialog.SafeFileName;
 				m_locker.FileDirectory.AddFile( filename );
 				UpdateFileTree();
 			}
@@ -109,6 +121,23 @@ namespace vlocker
 			a_map.Add( a_path, thisItem );
 
 			return a_map[a_path];
+		}
+
+		private void AddFolder ( object a_sender, RoutedEventArgs a_args )
+		{
+			// TODO: this
+			//m_locker.FileDirectory.AddFolder("New Folder");
+		}
+
+		private void Rename ( object a_sender, RoutedEventArgs a_args )
+		{
+			// TODO: this
+		}
+
+		private void DeleteNode ( object a_sender, RoutedEventArgs a_args )
+		{
+			FileViewItem fileNode = (FileViewItem) ( ( (ContextMenu) ( (MenuItem) a_sender ).Parent ).PlacementTarget );
+			var node = m_locker.FileDirectory.GetFile( fileNode.FullPath );
 		}
 	}
 }
