@@ -31,7 +31,7 @@ namespace vlocker
 						return m_fullPath.Substring( 0, i );
 				}
 
-				return null;
+				return (!m_fullPath.Contains('\\')) ? m_fullPath : null;
 			}
 		}
 

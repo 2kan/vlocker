@@ -26,10 +26,10 @@ namespace vlocker
 		{
 			InitializeComponent();
 
-			LockerFactory.CreateLocker( "locker.vlocker" );
+			//LockerFactory.CreateLocker( "locker.vlocker" );
 			m_locker = new Locker( "locker.vlocker" );
 			m_locker.LoadLocker();
-			m_locker.FileDirectory.AddFile( "test.txt" );
+			//m_locker.FileDirectory.AddFile( "test.txt" );
 			//byte[] file = a.FileDirectory.GetFile( "test.txt" );
 
 			UpdateFileTree();
@@ -41,6 +41,7 @@ namespace vlocker
 			treeItem.Header = "root";
 
 			Dictionary<string, TreeViewItem> map = new Dictionary<string, TreeViewItem>();
+			map.Add( treeItem.Header.ToString(), treeItem );
 
 			File[] files = m_locker.FileDirectory.GetFiles();
 			for ( int i = 0; i < files.Length; ++i )
@@ -61,7 +62,7 @@ namespace vlocker
 				}
 			}
 
-			treeItem.Items.Add( map.First().Value );
+			//treeItem.Items.Add( map.First().Value );
 			treeItem.IsExpanded = true;
 
 			fileTree.Items.Clear();

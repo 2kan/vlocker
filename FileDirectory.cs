@@ -101,6 +101,8 @@ namespace vlocker
 			}
 
 			int curBlockSize = GetBlock().Length;
+			if ( !a_path.StartsWith( "root\\" ) )
+				a_path = "root\\" + a_path;
 			m_directory.Add( new File( m_config, a_path, bytes.Length, endOffset ) );
 
 			FileStream fs = new FileStream( m_config.Path, FileMode.Open );
